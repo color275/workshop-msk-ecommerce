@@ -1,0 +1,8 @@
+# mysql backup (testuser)
+mysqldump -uroot -p ecommerce > ecommerce.sql
+
+# mysql restore
+mysql -uroot -p ecommerce < ecommerce.sql
+
+# locust, 98 : user 수
+nohup locust -f /root/workshop-ecommerce/locust/locustfile.py -H http://localhost:80 --headless -u 90 -r 20 -t 2400m &

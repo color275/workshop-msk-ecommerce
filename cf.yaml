@@ -1,0 +1,502 @@
+# aws cloudformation create-stack --stack-name workshop-03 --template-body file://cf.yaml --capabilities CAPABILITY_NAMED_IAM | jq '.'
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  dbAmi:
+    Type: String
+    Default: ami-0d0f12751524bb6b5
+
+  Prefix:
+    Type: String
+    Default: MSK
+
+Resources:
+  ########################################################
+  ## Source
+  ########################################################
+  # VPC 생성
+  mskSourceVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.20.0.0/16"
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-VPC
+
+  # 퍼블릭 서브넷 생성
+  mskSourcePublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref mskSourceVpc
+      CidrBlock: "10.20.100.0/24"
+      AvailabilityZone: "ap-northeast-2a"
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-PUBLIC-SUBNECT-A
+
+  # 퍼블릭 서브넷 생성
+  mskSourcePublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref mskSourceVpc
+      CidrBlock: "10.20.200.0/24"
+      AvailabilityZone: "ap-northeast-2c"
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-PUBLIC-SUBNECT-C
+
+
+  # 인터넷 게이트웨이 생성
+  mskSourceIg:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-IG
+
+  # VPC와 인터넷 게이트웨이 연결
+  mskSourceAttachIg:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref mskSourceVpc
+      InternetGatewayId: !Ref mskSourceIg
+
+  # 라우팅 테이블 생성
+  mskSourcePublicRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref mskSourceVpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-PUBLIC-RT
+
+  # 라우팅 테이블에 인터넷 게이트웨이 경로 추가
+  mskSourceRt:
+    Type: AWS::EC2::Route
+    DependsOn: mskSourceAttachIg
+    Properties:
+      RouteTableId: !Ref mskSourcePublicRt
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref mskSourceIg
+
+  # 퍼블릭 서브넷에 라우팅 테이블 연결
+  mskSourcePublicSubnetRtAsso1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref mskSourcePublicSubnet1
+      RouteTableId: !Ref mskSourcePublicRt
+
+  # 퍼블릭 서브넷에 라우팅 테이블 연결
+  mskSourcePublicSubnetRtAsso2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref mskSourcePublicSubnet2
+      RouteTableId: !Ref mskSourcePublicRt
+
+  ## DB 보안 그룹 생성
+  mskSourceDbSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${Prefix}-SOURCE-DB-SG
+      GroupName: !Sub ${Prefix}-SOURCE-DB-SG
+      VpcId: !Ref mskSourceVpc
+
+  mskSourceDbSgIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceDbSg
+    Properties:
+      GroupId: !Ref mskSourceDbSg
+      IpProtocol: tcp
+      FromPort: 8000
+      ToPort: 8000
+      CidrIp: "0.0.0.0/0"
+
+  mskSourceDbSgIngress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceDbSg
+    Properties:
+      GroupId: !Ref mskSourceDbSg
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref mskSourceMSKSg
+
+  ## DB 보안 그룹 생성
+  mskSourceMSKSg:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: mskSourceC9SG
+    Properties:
+      GroupDescription: !Sub ${Prefix}-Cluster-SG
+      GroupName: !Sub ${Prefix}-SG
+      VpcId: !Ref mskSourceVpc
+
+  mskSourceMSKSgIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 2181
+      ToPort: 2181
+      SourceSecurityGroupId: !Ref mskSourceC9SG
+      Description: "zookeeper access"
+
+  mskSourceMSKSgIngress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 9094
+      ToPort: 9094
+      SourceSecurityGroupId: !Ref mskSourceC9SG
+      Description: "encrypted kafka"
+
+  mskSourceMSKSgIngress3:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 9092
+      ToPort: 9092
+      SourceSecurityGroupId: !Ref mskSourceC9SG
+      Description: "plaintext kafka"
+
+  mskSourceMSKSgIngress4:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 9098
+      ToPort: 9098
+      SourceSecurityGroupId: !Ref mskSourceC9SG
+      Description: "iam"
+
+  mskSourceMSKSgIngress5:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref mskSourceMSKSg
+      Description: "self"
+
+  ## C9 보안그룹
+  mskSourceC9SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${Prefix}-C9-SG
+      GroupName: !Sub ${Prefix}-C9
+      VpcId: !Ref mskSourceVpc
+
+  ## ROLE
+  mskSourceDbProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+      - Ref: mskSourceDBRole
+
+  mskSourceDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Prefix}-SOURCE-DB-ROLE
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  ## EC2
+  mskSourceDbInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref dbAmi
+      InstanceType: r5.2xlarge
+      IamInstanceProfile: !Ref mskSourceDbProfile # EC2 인스턴스에 할당할 인스턴스 프로필의 레퍼런스
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: 0
+        GroupSet:
+        - !Ref mskSourceDbSg
+        SubnetId: !Ref mskSourcePublicSubnet1
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-SOURCE-DB
+
+  ########################################################
+  ## Target
+  ########################################################
+  # VPC 생성
+  mskTargetVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.40.0.0/16"
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-VPC
+
+  # 퍼블릭 서브넷 생성
+  mskTargetPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref mskTargetVpc
+      CidrBlock: "10.40.100.0/24"
+      AvailabilityZone: "ap-northeast-2a"
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-PUBLIC-SUBNECT-A
+
+  # 퍼블릭 서브넷 생성
+  mskTargetPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref mskTargetVpc
+      CidrBlock: "10.40.200.0/24"
+      AvailabilityZone: "ap-northeast-2c"
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-PUBLIC-SUBNECT-C
+
+  # 인터넷 게이트웨이 생성
+  mskTargetIg:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-IG
+
+  # VPC와 인터넷 게이트웨이 연결
+  mskTargetAttachIg:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref mskTargetVpc
+      InternetGatewayId: !Ref mskTargetIg
+
+  # 라우팅 테이블 생성
+  mskTargetPublicRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref mskTargetVpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-PUBLIC-RT
+
+  # 라우팅 테이블에 인터넷 게이트웨이 경로 추가
+  mskTargetRt:
+    Type: AWS::EC2::Route
+    DependsOn: mskTargetAttachIg
+    Properties:
+      RouteTableId: !Ref mskTargetPublicRt
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref mskTargetIg
+
+  # 퍼블릭 서브넷에 라우팅 테이블 연결
+  mskTargetPublicSubnetRtAsso1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref mskTargetPublicSubnet1
+      RouteTableId: !Ref mskTargetPublicRt
+
+  # 퍼블릭 서브넷에 라우팅 테이블 연결
+  mskTargetPublicSubnetRtAsso2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref mskTargetPublicSubnet2
+      RouteTableId: !Ref mskTargetPublicRt
+
+  ## DB 보안 그룹 생성
+  mskTargetDbSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${Prefix}-Target-DB-SG
+      GroupName: !Sub ${Prefix}-Target-DB-SG
+      VpcId: !Ref mskTargetVpc
+
+  mskTargetDbSgIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskTargetDbSg
+    Properties:
+      GroupId: !Ref mskTargetDbSg
+      IpProtocol: tcp
+      FromPort: 8000
+      ToPort: 8000
+      CidrIp: "0.0.0.0/0"
+
+  mskTargetDbSgIngress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskTargetDbSg
+    Properties:
+      GroupId: !Ref mskTargetDbSg
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref mskSourceMSKSg
+
+  mskTargetDbProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+      - Ref: mskTargetDBRole
+
+  ## ROLE
+  mskTargetDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Prefix}-TARGET-DB-ROLE
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  ## EC2
+  mskTargetDbInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref dbAmi
+      InstanceType: r5.2xlarge
+      IamInstanceProfile: !Ref mskTargetDbProfile # EC2 인스턴스에 할당할 인스턴스 프로필의 레퍼런스
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: 0
+        GroupSet:
+        - !Ref mskTargetDbSg
+        SubnetId: !Ref mskTargetPublicSubnet1
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-TARGET-DB
+
+  cmmLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub WORKSHOP-${Prefix}
+
+  # connect role
+  mskConnectIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub iam-${Prefix}-connect-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: kafkaconnect.amazonaws.com
+          Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              "aws:SourceAccount": !Ref "AWS::AccountId"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      Policies:
+      - PolicyName: !Sub iam-${Prefix}-connect-policy-2
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action:
+            - kafka-cluster:Connect
+            - kafka-cluster:DescribeCluster
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - kafka-cluster:ReadData
+            - kafka-cluster:DescribeTopic
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - kafka-cluster:WriteData
+            - kafka-cluster:DescribeTopic
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - kafka-cluster:CreateTopic
+            - kafka-cluster:WriteData
+            - kafka-cluster:ReadData
+            - kafka-cluster:DescribeTopic
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - kafka-cluster:AlterGroup
+            - kafka-cluster:DescribeGroup
+            Resource: "*"
+
+  # 피어링 연결 설정
+  mskPeeringConnection:
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      PeerVpcId: !Ref mskTargetVpc
+      VpcId: !Ref mskSourceVpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${Prefix}-Peering-Connection
+
+  # Source VPC의 라우팅 테이블에 대역 추가
+  mskSourcePublicRtPeering:
+    Type: AWS::EC2::Route
+    DependsOn: mskPeeringConnection
+    Properties:
+      RouteTableId: !Ref mskSourcePublicRt
+      DestinationCidrBlock: "10.40.0.0/16" # Target VPC의 대역
+      VpcPeeringConnectionId: !Ref mskPeeringConnection
+
+  # Target VPC의 라우팅 테이블에 대역 추가
+  mskTargetPublicRtPeering:
+    Type: AWS::EC2::Route
+    DependsOn: mskPeeringConnection
+    Properties:
+      RouteTableId: !Ref mskTargetPublicRt
+      DestinationCidrBlock: "10.20.0.0/16" # Source VPC의 대역
+      VpcPeeringConnectionId: !Ref mskPeeringConnection
+
+
+Outputs:
+  SourceDBPrivateIP:
+    Description: "Source DB Private IP"
+    Value: !GetAtt mskSourceDbInstance.PrivateIp
+  SourceDBPublicIP:
+    Description: "Source DB Public IP"
+    Value: !GetAtt mskSourceDbInstance.PublicIp
+  SourceVpcId:
+    Description: "Source VPC ID"
+    Value: !Ref mskSourceVpc
+  SourcePublicSubnetId1:
+    Description: "Source Public Subnet-A ID"
+    Value: !Ref mskSourcePublicSubnet1
+  SourcePublicSubnetId2:
+    Description: "Source Public Subnet-C ID"
+    Value: !Ref mskSourcePublicSubnet2
+
+  TargetDBPrivateIP:
+    Description: "Target DB Private IP"
+    Value: !GetAtt mskTargetDbInstance.PrivateIp
+  TargetDBPublicIP:
+    Description: "Target DB Public IP"
+    Value: !GetAtt mskTargetDbInstance.PublicIp
+  TargetVpcId:
+    Description: "Target VPC ID"
+    Value: !Ref mskTargetVpc
+  TargetPublicSubnetId1:
+    Description: "Target Public Subnet-A ID"
+    Value: !Ref mskTargetPublicSubnet1
+  TargetPublicSubnetId2:
+    Description: "Target Public Subnet-C ID"
+    Value: !Ref mskTargetPublicSubnet2
+

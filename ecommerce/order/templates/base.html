@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-9TGHS8LPJC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9TGHS8LPJC');
+  </script>
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap 4 CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+    crossorigin="anonymous">
+  {% block head %}
+  {% endblock %}
+  <style>
+    .navbar-nav .nav-item.active .nav-link {
+    }
+    .navbar-text {
+      color: white !important;
+      font-weight: bold;
+    }
+    .navbar-nav li a {
+      font-size: 20px; /* 메뉴 폰트 크기를 20px로 설정 */
+    }
+
+    .navbar-nav .nav-item {
+      margin-right: 50px;
+    }
+
+  </style>
+  <script>
+  function showConfirmation() {
+    const confirmation = confirm("로그아웃 하시겠습니까?");
+    if (confirmation) {
+      window.location.href = "{% url 'logout' %}";
+    }
+  }
+</script>
+  <title>{% block title %}{% endblock %}</title>
+<body>
+  
+	<div id="header">
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand text-success" href="#">AWS WorkShop</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'product_list' %}">상품정보</a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'customer_list' %}">고객정보</a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'order_list' %}">주문정보</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" target="blank" href="https://docs.google.com/spreadsheets/d/1oZNF4gvLqr2F8nE3CdIPfDBhMhFia1n1352ACONNnN0/edit?usp=sharing">엑셀:마케팅</a>
+        </li>
+        
+        {% comment %} <li class="nav-item {% if request.resolver_match.url_name == 'recommend_list' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'recommend_list' %}">개인화/추천</a>
+        </li> {% endcomment %}
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <span class="navbar-text" >환영합니다!! {{ user.name }} 님! <br><font color=red>{{hostname}}</font></span>
+        </li>
+        
+        {% else %}
+        {% comment %} <li class="nav-item">
+          <a class="nav-link" href="{% url 'login' %}">Login</a>
+        </li> {% endcomment %}
+        {% endif %}
+      </ul>
+      <a class="btn btn-outline-success my-2 my-sm-0" href="#" onclick="showConfirmation()">Logout</a>
+      
+
+    </div>
+  </nav>
+
+	</div>
+
+	<div id="content">
+		{% block content %}
+		{% endblock %}
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+		integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+		crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+		integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHJw5755"
+		crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+		crossorigin="anonymous"></script>
+  
+  
+  {% block script %}
+  {% endblock %}
+</body>
+</html>

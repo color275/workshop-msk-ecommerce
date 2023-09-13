@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+<head>
+</head>
+<body>
+<br><br><br><br><br><br>
+<div class="col-md-10 ml-5">
+    <h3>
+    고객 정보
+    <small class="text-muted">모든 고객 정보</small>
+    </h3>
+    <table class="table table-striped" >
+    <thead>
+      <tr>
+        <th scope="col">고객 번호</th>
+        <th scope="col">고객 ID</th>
+        <th scope="col">고객 이름</th>
+        <th scope="col">전화번호</th>
+        <th scope="col">나이</th>
+        <th scope="col">성별</th>
+        <th scope="col">주소</th>
+        <th scope="col">가입일자</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for customer in customers %}
+      <tr>
+        <td>{{ customer.id }}</td>
+        <td>{{ customer.username }}</td>
+        <td>{{ customer.name }}</td>
+        <td>{{ customer.phone_number }}</td>
+        <td>{{ customer.age }}</td>
+        <td>{{ customer.gender }}</td>
+        <td>{{ customer.address }}</td>
+        <td>{{ customer.last_update_time|date:"Y/m/d H:i:s" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+</body>
+{% endblock %}
+
