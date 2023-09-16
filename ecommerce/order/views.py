@@ -2,7 +2,7 @@
 # Create your views here.
 from django.shortcuts import render
 from .models import *
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import boto3
@@ -18,6 +18,9 @@ from django.conf import settings
 
 import socket
 from django.contrib import messages  
+
+
+from django.db.models.functions import TruncSecond
 
 
 
@@ -134,16 +137,20 @@ def product_order(request, product_id):
 
 @login_required
 def order_list(request):
-
     OrderModel = get_user_orders(request.user)
     
-    orders = OrderModel.objects.select_related('cust_id', 'prd_id').order_by('-last_update_time')[:50]
+    orders = OrderModel.objects.annotate(
+        truncated_last_update_time=TruncSecond('last_update_time')
+    ).select_related('cust_id', 'prd_id').order_by('-truncated_last_update_time','id')[:50]
+    
     total_order_price = orders.aggregate(Sum('order_price'))['order_price__sum'] or 0
+    total_order_count = orders.aggregate(Count('id'))['id__count'] or 0
     context = {
-                'orders': orders, 
-                'total_order_price': total_order_price, 
-                'hostname': socket.gethostname()
-            }
+        'orders': orders,
+        'total_order_price': total_order_price,
+        'total_order_count': total_order_count,
+        'hostname': socket.gethostname()
+    }
     
     return render(request, 'order_list.html', context)
 
