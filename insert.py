@@ -2,6 +2,7 @@ import pymysql
 from faker import Faker
 import random
 import time
+from datetime import datetime
 
 db = pymysql.connect(host="localhost", user="testuser", password="testuser", database="ecommerce")
 cursor = db.cursor()
@@ -13,9 +14,9 @@ def generate_data():
     prd_id = random.randint(1, 20)
     
     order_cnt = random.randint(1, 10)
-    order_price = random.randint(10, 100)
+    order_price = random.randint(10, 100) * 100
     order_dt = fake.date_time_this_decade()
-    last_update_time = fake.date_time_between(start_date=order_dt)
+    last_update_time = datetime.now()
     promo_id = fake.word()
     
     return (cust_id, prd_id, order_cnt, order_price, order_dt, last_update_time, promo_id)
