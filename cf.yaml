@@ -24,6 +24,7 @@ Resources:
       - Key: Name
         Value: !Sub ${Prefix}-SOURCE-VPC
 
+
   # 퍼블릭 서브넷 생성
   mskSourcePublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -72,6 +73,16 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${Prefix}-SOURCE-PUBLIC-RT
+
+  # Endpoint 생성
+  AWSS3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      ServiceName: com.amazonaws.ap-northeast-2.s3
+      VpcId: !Ref mskSourceVpc
+      RouteTableIds:
+      - !Ref mskSourcePublicRt
 
   # 라우팅 테이블에 인터넷 게이트웨이 경로 추가
   mskSourceRt:
@@ -405,6 +416,7 @@ Resources:
               "aws:SourceAccount": !Ref "AWS::AccountId"
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
       - PolicyName: !Sub iam-${Prefix}-connect-policy-2
         PolicyDocument:
