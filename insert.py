@@ -9,12 +9,28 @@ cursor = db.cursor()
 
 fake = Faker()
 
+def get_product_price(prd_id):
+    sql = "SELECT price FROM product WHERE id = %s"
+    cursor.execute(sql, (prd_id,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        return None
+
 def generate_data():
     cust_id = random.randint(1, 100)
     prd_id = random.randint(1, 20)
     
     order_cnt = random.randint(1, 10)
-    order_price = random.randint(10, 100) * 100
+
+    product_price = get_product_price(prd_id)
+    
+    if product_price is not None:
+        order_price = order_cnt * product_price
+    else:
+        order_price = random.randint(10, 100) * 100  # 상품 가격이 없는 경우 임의의 가격 생성
+    
     order_dt = fake.date_time_this_decade()
     last_update_time = datetime.now()
     promo_id = fake.word()
