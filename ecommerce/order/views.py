@@ -143,11 +143,12 @@ def order_list(request):
         truncated_last_update_time=TruncSecond('last_update_time')
     ).select_related('cust_id', 'prd_id').order_by('-truncated_last_update_time','id')[:50]
     
-    total_order_price = orders.aggregate(Sum('order_price'))['order_price__sum'] or 0
-    total_order_count = orders.aggregate(Count('id'))['id__count'] or 0
+    # total_order_price = orders.aggregate(Sum('order_price'))['order_price__sum'] or 0
+    # total_order_count = orders.aggregate(Count('id'))['id__count'] or 0
+    total_order_count = OrderModel.objects.count()
     context = {
         'orders': orders,
-        'total_order_price': total_order_price,
+        # 'total_order_price': total_order_price,
         'total_order_count': total_order_count,
         'hostname': socket.gethostname()
     }
