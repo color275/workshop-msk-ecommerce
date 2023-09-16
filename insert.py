@@ -3,6 +3,12 @@ from faker import Faker
 import random
 import time
 from datetime import datetime
+import sys
+
+if len(sys.argv) > 1:
+    batch_size = int(sys.argv[1])
+else:
+    batch_size = 10
 
 db = pymysql.connect(host="localhost", user="testuser", password="testuser", database="ecommerce")
 cursor = db.cursor()
@@ -37,7 +43,7 @@ def generate_data():
     
     return (cust_id, prd_id, order_cnt, order_price, order_dt, last_update_time, promo_id)
 
-batch_size = 10
+
 while True:
     data_to_insert = [generate_data() for _ in range(batch_size)]
     
