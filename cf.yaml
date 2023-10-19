@@ -199,6 +199,17 @@ Resources:
       SourceSecurityGroupId: !Ref mskSourceMSKSg
       Description: "self"
 
+  mskSourceMSKSgIngress6:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: mskSourceMSKSg
+    Properties:
+      GroupId: !Ref mskSourceMSKSg
+      IpProtocol: tcp
+      FromPort: 9096
+      ToPort: 9096
+      SourceSecurityGroupId: !Ref mskSourceC9SG
+      Description: "SASL/SCRAM"
+
   ## C9 보안그룹
   mskSourceC9SG:
     Type: AWS::EC2::SecurityGroup
