@@ -6,3 +6,15 @@ mysql -uroot -p ecommerce < ecommerce.sql
 
 # locust, 98 : user 수
 nohup locust -f /root/workshop-ecommerce/locust/locustfile.py -H http://localhost:80 --headless -u 90 -r 20 -t 2400m &
+
+
+aws kafkaconnect create-connector --cli-input-json file://test.source.json | jq "."
+aws kafkaconnect create-connector --cli-input-json file://test.target.json | jq "."
+
+# https://github.com/provectus/kafka-ui
+# https://docs.kafka-ui.provectus.io/quick-start/prerequisites/permissions/msk-+serverless-setup
+docker run -p 8080:8080 \
+	-e KAFKA_CLUSTERS_0_NAME=local \
+	-e KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092 \
+	-d provectuslabs/kafka-ui:latest
+

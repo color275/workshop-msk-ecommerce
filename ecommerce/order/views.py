@@ -54,45 +54,45 @@ import random
 # from .models import Product, Order
 
 def get_user_orders(user):
-    if user.username == 'AWS01':
+    if user.username.upper() == 'AWS01':
         OrderModel = Order01  
-    elif user.username == 'AWS02':
+    elif user.username.upper() == 'AWS02':
         OrderModel = Order02  
-    elif user.username == 'AWS03':
+    elif user.username.upper() == 'AWS03':
         OrderModel = Order03  
-    elif user.username == 'AWS04':
+    elif user.username.upper() == 'AWS04':
         OrderModel = Order04  
-    elif user.username == 'AWS05':
+    elif user.username.upper() == 'AWS05':
         OrderModel = Order05  
-    elif user.username == 'AWS06':
+    elif user.username.upper() == 'AWS06':
         OrderModel = Order06  
-    elif user.username == 'AWS07':
+    elif user.username.upper() == 'AWS07':
         OrderModel = Order07  
-    elif user.username == 'AWS08':
+    elif user.username.upper() == 'AWS08':
         OrderModel = Order08  
-    elif user.username == 'AWS09':
+    elif user.username.upper() == 'AWS09':
         OrderModel = Order09  
-    elif user.username == 'AWS10':
+    elif user.username.upper() == 'AWS10':
         OrderModel = Order10  
-    elif user.username == 'AWS11':
+    elif user.username.upper() == 'AWS11':
         OrderModel = Order11  
-    elif user.username == 'AWS12':
+    elif user.username.upper() == 'AWS12':
         OrderModel = Order12  
-    elif user.username == 'AWS13':
+    elif user.username.upper() == 'AWS13':
         OrderModel = Order13  
-    elif user.username == 'AWS14':
+    elif user.username.upper() == 'AWS14':
         OrderModel = Order14  
-    elif user.username == 'AWS15':
+    elif user.username.upper() == 'AWS15':
         OrderModel = Order15  
-    elif user.username == 'AWS16':
+    elif user.username.upper() == 'AWS16':
         OrderModel = Order16  
-    elif user.username == 'AWS17':
+    elif user.username.upper() == 'AWS17':
         OrderModel = Order17  
-    elif user.username == 'AWS18':
+    elif user.username.upper() == 'AWS18':
         OrderModel = Order18  
-    elif user.username == 'AWS19':
+    elif user.username.upper() == 'AWS19':
         OrderModel = Order19  
-    elif user.username == 'AWS20':
+    elif user.username.upper() == 'AWS20':
         OrderModel = Order20  
     else:
         # 기본값으로 Order 모델을 사용하거나 다른 처리를 수행할 수 있습니다.
