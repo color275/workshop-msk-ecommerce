@@ -36,7 +36,7 @@
                 {% for order in orders %}
                 <tr>
                     <td>{{ order.id }}</td>
-                    <td>{{ order.cust_id.username }}</td>
+                    <td>{{ order.cust_id.username|upper }}</td>
                     <td>{{ order.cust_id.name }}</td>
                     <td>{{ order.cust_id.phone_number }}</td>
                     <td>{{ order.prd_id.name }}</td>
