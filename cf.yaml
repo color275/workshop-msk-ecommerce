@@ -5,7 +5,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Parameters:
   dbAmi:
     Type: String
-    Default: ami-0d37f006f91c41db1
+    Default: ami-09cf571476b9a40fa
 
   Prefix:
     Type: String
