@@ -1,0 +1,75 @@
+{
+    "connectorConfiguration": {
+        "tasks.max": "1",
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "connection.user": "admin",
+        "connection.password": "Admin12#$",
+        "connection.url": "jdbc:oracle:thin:@10.10.101.169:1521/ORCL",
+        "auto.create": "true",
+        "auto.evolve": "true",        
+        "insert.mode": "upsert",
+        "topics.regex": "ecommerce01.ecommerce.(.*)",
+        "table.name.format":"${topic}",
+        "quote.sql.identifiers": "never",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": "true",
+    	"value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    	"value.converter.schemas.enable": "true",
+        "pk.fields": "id",
+        "pk.mode": "record_value",
+        "transforms": "changeTopicName",
+        "transforms.changeTopicName.type": "org.apache.kafka.connect.transforms.RegexRouter",
+        "transforms.changeTopicName.regex": "ecommerce01.ecommerce.(.*)",
+        "transforms.changeTopicName.replacement": "$1"
+    },
+    "connectorName": "target-oracle-04",
+    "kafkaCluster": {
+        "apacheKafkaCluster": {
+            "bootstrapServers": "b-3.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-2.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-1.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098",
+            "vpc": {
+                "subnets": [
+                    "subnet-0d21d3dc162b878d7",
+                    "subnet-0440f10506c7e6589",
+                    "subnet-0c3f2a7e563e285d4"
+                ],
+                "securityGroups": [
+                    "sg-000ad1dd08d3a8c94"
+                ]
+            }
+        }
+    },
+    "capacity": {
+        "provisionedCapacity": {
+            "mcuCount": 2,
+            "workerCount": 4
+        }
+    },
+    "kafkaConnectVersion": "2.7.1",
+    "serviceExecutionRoleArn": "arn:aws:iam::531744930393:role/msk-connect-lab-AuroraConnectorIAMRole",
+    "plugins": [
+        {
+            "customPlugin": {
+                "customPluginArn": "arn:aws:kafkaconnect:ap-northeast-2:531744930393:custom-plugin/confluentinc-kafka-connect-jdbc-10-7-4/d12e6002-6ec9-4214-a54f-28baac2a0abe-2",
+                "revision": 1
+            }
+        }
+    ],
+    "kafkaClusterEncryptionInTransit": {
+        "encryptionType": "TLS"
+    },
+    "kafkaClusterClientAuthentication": {
+        "authenticationType": "IAM"
+    },
+    "workerConfiguration": {
+        "workerConfigurationArn": "arn:aws:kafkaconnect:ap-northeast-2:531744930393:worker-configuration/test2/037ad8d9-9650-4e15-8cde-f48da0b86d2f-2",
+        "revision": 1
+    },
+    "logDelivery": {
+        "workerLogDelivery": {
+            "cloudWatchLogs": {
+                "enabled": true,
+                "logGroup": "msk-lab-target-oracle-connector"
+            }
+        }
+    }
+}

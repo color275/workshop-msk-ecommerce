@@ -1,0 +1,76 @@
+{
+    "connectorConfiguration": {
+        "connector.class":"io.confluent.connect.jdbc.JdbcSinkConnector",
+        "transforms.changeTopicName.regex":"workshop.ecommerce.(.*)",
+        "topics.regex":"workshop.ecommerce.(.*)",
+        "table.name.format":"${topic}",
+        "tasks.max":"1",
+        "transforms":"changeTopicName",
+        "max.retries":"200",
+        "retry.backoff.ms":"3000",
+        "transforms.changeTopicName.type":"org.apache.kafka.connect.transforms.RegexRouter",
+        "key.converter.schemas.enable":"true",
+        "auto.evolve":"false",
+        "connection.user":"${secretsmanager:workshop-msk-db-secret2:username}",
+        "connection.password":"${secretsmanager:workshop-msk-db-secret2:password}",
+        "value.converter.schemas.enable":"true",
+        "auto.create":"false",
+        "connection.url":"jdbc:oracle:thin:@${secretsmanager:workshop-msk-db-secret2:target_db_ip}:1521/ORCL",
+        "value.converter":"org.apache.kafka.connect.json.JsonConverter",
+        "insert.mode":"upsert",
+        "key.converter":"org.apache.kafka.connect.json.JsonConverter",
+        "pk.mode":"record_value",
+        "transforms.changeTopicName.replacement":"$1",
+        "quote.sql.identifiers":"never",
+        "pk.fields":"id"
+    },
+    "connectorName": "target-connector5",
+    "kafkaCluster": {
+        "apacheKafkaCluster": {
+            "bootstrapServers": "b-2.workshopmskcluste.odjbek.c4.kafka.ap-northeast-2.amazonaws.com:9098,b-3.workshopmskcluste.odjbek.c4.kafka.ap-northeast-2.amazonaws.com:9098,b-4.workshopmskcluste.odjbek.c4.kafka.ap-northeast-2.amazonaws.com:9098",
+            "vpc": {
+                "subnets": [
+                    "subnet-013802afd5b28cb37",
+                    "subnet-0ad430845ca16e261"
+                ],
+                "securityGroups": [
+                    "sg-0d888d7105dc063e5"
+                ]
+            }
+        }
+    },
+    "capacity": {
+        "provisionedCapacity": {
+            "mcuCount": 2,
+            "workerCount": 1
+        }
+    },
+    "kafkaConnectVersion": "2.7.1",
+    "serviceExecutionRoleArn": "arn:aws:iam::432186367487:role/iam-MSK-connect-role",
+    "plugins": [
+        {
+            "customPlugin": {
+                "customPluginArn": "arn:aws:kafkaconnect:ap-northeast-2:432186367487:custom-plugin/confluentinc-kafka-connect-jdbc2/9bfa7f34-8765-45fa-8394-1b430a7b8bbf-4",
+                "revision": 1
+            }
+        }
+    ],
+    "kafkaClusterEncryptionInTransit": {
+        "encryptionType": "TLS"
+    },
+    "kafkaClusterClientAuthentication": {
+        "authenticationType": "IAM"
+    },
+    "workerConfiguration": {
+        "workerConfigurationArn": "arn:aws:kafkaconnect:ap-northeast-2:432186367487:worker-configuration/workshop-worker-config-3/959f871e-d81b-457d-85fc-9710dd3a3003-4",
+        "revision": 1
+    },
+    "logDelivery": {
+        "workerLogDelivery": {
+            "cloudWatchLogs": {
+                "enabled": true,
+                "logGroup": "WORKSHOP-MSK"
+            }
+        }
+    }
+}

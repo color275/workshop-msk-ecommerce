@@ -1,0 +1,82 @@
+{
+    "connectorConfiguration": {
+        "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+        "tasks.max": "1",
+        "database.hostname": "10.20.100.69",
+        "database.port": "3306",
+        "database.user": "testuser",
+        "database.password": "testuser",
+        "database.connectionTimeZone": "Asia/Seoul",
+        "database.server.id": "123401",
+        "database.include.list": "ecommerce",
+        "table.include.list": "ecommerce.orders",
+        "topic.prefix": "source-01",
+        "schema.history.internal.kafka.topic": "source-01",
+        "schema.history.internal.kafka.bootstrap.servers": "b-3.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-1.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-2.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098",
+        "schema.history.internal.consumer.security.protocol": "SASL_SSL",
+        "schema.history.internal.consumer.sasl.mechanism": "AWS_MSK_IAM",
+        "schema.history.internal.consumer.sasl.jaas.config": "software.amazon.msk.auth.iam.IAMLoginModule required;",
+        "schema.history.internal.consumer.sasl.client.callback.handler.class": "software.amazon.msk.auth.iam.IAMClientCallbackHandler",
+        "schema.history.internal.producer.security.protocol": "SASL_SSL",
+        "schema.history.internal.producer.sasl.mechanism": "AWS_MSK_IAM",
+        "schema.history.internal.producer.sasl.jaas.config": "software.amazon.msk.auth.iam.IAMLoginModule required;",
+        "schema.history.internal.producer.sasl.client.callback.handler.class": "software.amazon.msk.auth.iam.IAMClientCallbackHandler",
+        "include.schema.changes": "true",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": "true",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter.schemas.enable": "true",
+        "transforms": "unwrap",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "time.precision.mode": "connect"
+    },
+    "connectorName": "source-01",
+    "kafkaCluster": {
+        "apacheKafkaCluster": {
+            "bootstrapServers": "b-3.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-1.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-2.workshopcluster.syk5jk.c2.kafka.ap-northeast-2.amazonaws.com:9098",
+            "vpc": {
+                "subnets": [
+                    "subnet-082500df401236358",
+                    "subnet-0a2b5e3593bd60cf9"
+                ],
+                "securityGroups": [
+                    "sg-03bd1da6c1bc69ff4"
+                ]
+            }
+        }
+    },
+    "capacity": {
+        "provisionedCapacity": {
+            "mcuCount": 2,
+            "workerCount": 1
+        }
+    },
+    "kafkaConnectVersion": "2.7.1",
+    "serviceExecutionRoleArn": "arn:aws:iam::531744930393:role/iam-msk-connect-role",
+    "plugins": [
+        {
+            "customPlugin": {
+                "customPluginArn": "arn:aws:kafkaconnect:ap-northeast-2:531744930393:custom-plugin/debezium-connector-mysql-2-0-1-Final-plugin-2/17f175da-6d04-420f-9d36-b830d600fe38-2",
+                "revision": 1
+            }
+        }
+    ],
+    "kafkaClusterEncryptionInTransit": {
+        "encryptionType": "TLS"
+    },
+    "kafkaClusterClientAuthentication": {
+        "authenticationType": "IAM"
+    },
+    "workerConfiguration": {
+        "workerConfigurationArn": "arn:aws:kafkaconnect:ap-northeast-2:531744930393:worker-configuration/test2/037ad8d9-9650-4e15-8cde-f48da0b86d2f-2",
+        "revision": 1
+    },
+    "logDelivery": {
+        "workerLogDelivery": {
+            "cloudWatchLogs": {
+                "enabled": true,
+                "logGroup": "WORKSHOP-MSK"
+            }
+        }
+    }
+}

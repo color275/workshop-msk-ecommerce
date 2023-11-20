@@ -1,0 +1,131 @@
+## workshop
+aws kafkaconnect create-connector --cli-input-json file://source.json --profile eks | jq "."
+aws kafkaconnect create-connector --cli-input-json file://target.json --profile eks | jq "."
+
+
+
+./bin/kafka-consumer-groups.sh --bootstrap-server $MSK_BOOTSTRAP_ADDRESS --list
+./bin/kafka-topics.sh --desribe --bootstrap-server $MSK_BOOTSTRAP_ADDRESS --topic workshop
+bin/kafka-topics.sh --describe --topic workshop --bootstrap-server $MSK_BOOTSTRAP_ADDRESS
+kafka-consumer-groups.sh --bootstrap-server <KAFKA_BROKER_LIST> --describe --group <CONSUMER_GROUP_NAME>
+
+
+
+export MSK_BOOTSTRAP_ADDRESS=b-3.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-2.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098,b-1.workshop.c21fem.c2.kafka.ap-northeast-2.amazonaws.com:9098
+
+
+## test
+aws kafkaconnect create-connector --cli-input-json file://test.source.json | jq "."
+aws kafkaconnect create-connector --cli-input-json file://test.target.json | jq "."
+
+
+## workshop
+aws kafkaconnect create-connector --cli-input-json file://workshop-source-connector-info.json | jq "."
+aws kafkaconnect create-connector --cli-input-json file://workshop-target-connector-info.json | jq "."
+
+
+## error
+
+error - connect source
+User does not have the 'LOCK TABLES' privilege required to obtain a consistent snapshot by preventing concurrent writes to tables.
+
+solution 
+GRANT SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO testuser;
+or
+https://stackoverflow.com/questions/66966847/unable-to-deploy-mysql-debezium-connector-on-gke-user-does-not-have-the-lock
+"snapshot.locking.mode": "none"
+
+
+===================================================================================================
+
+
+aws kafkaconnect create-connector --cli-input-json file://source-connector-info.json | jq "."
+aws kafkaconnect create-connector --cli-input-json file://target-connector-info.json | jq "."
+
+
+connector.class=io.confluent.connect.jdbc.JdbcSinkConnector
+table.name.format=orders
+connection.password=Admin12#$
+auto.evolve=true
+tasks.max=1
+topics=topic_ecommerce.ecommerce.orders
+connection.user=admin
+auto.create=true
+connection.url=jdbc:oracle:thin:@10.10.101.169:1521/ORCL
+insert.mode=insert
+pk.fields=id
+
+
+
+
+
+## 토픽 리스트 확인
+./bin/kafka-topics.sh \
+--bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--command-config /tmp/client_iam.properties \
+--list
+
+## 토픽 삭제
+./bin/kafka-topics.sh \
+--bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--command-config /tmp/client_iam.properties \
+--delete --topic 
+
+## 토픽 리시트 조회 삭제
+./bin/kafka-topics.sh \
+--bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--command-config /tmp/client_iam.properties \
+--list  | while read topic_name; do
+./bin/kafka-topics.sh \
+--bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--command-config /tmp/client_iam.properties \
+--delete --topic "$topic_name"
+done
+
+
+
+# 토픽 내용 조회
+./bin/kafka-console-consumer.sh \
+--bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--consumer.config /tmp/client_iam.properties \
+--from-beginning --topic 
+
+## connect 조회
+aws kafkaconnect list-connectors --output json | jq -r '.connectors[].connectorArn'
+
+## connect 삭제
+aws kafkaconnect delete-connector --connector-arn "here" | jq "."
+
+## connect 조회 + 삭제
+aws kafkaconnect list-connectors --output json | jq -r '.connectors[].connectorArn' | while read arn; do
+    aws kafkaconnect delete-connector --connector-arn "$arn" | jq "."
+done
+
+aws kafkaconnect list-connectors --output json | jq -r '.connectors[] | select(.connectorName | startswith("s3")) | .connectorArn' | while read arn; do
+    aws kafkaconnect delete-connector --connector-arn "$arn" | jq "."
+done
+
+
+
+"transforms": "unwrap",
+"transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+
+
+
+https://debezium.io/documentation/reference/stable/connectors/mysql.html
+https://stackoverflow.com/questions/76535220/how-to-convert-unix-timestamps-captured-by-debezium-into-normal-timestamps-in-ka
+"time.precision.mode": "connect"
+
+
+
+
+
+
+
+
+
+
+bin/kafka-topics.sh --bootstrap-server $MSK_BOOTSTRAP_ADDRESS \
+--command-config /tmp/client_iam.properties \
+--describe \
+--topic workshop.ecommerce.orders
